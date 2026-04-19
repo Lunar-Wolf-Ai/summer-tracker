@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Set Weekly Goals — SummerTrack{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+    <a href="{% url 'dashboard' %}" class="hover:text-gray-300 transition-colors">Dashboard</a>
+    <span>›</span>
+    <span class="text-gray-300">Set Goals</span>
+  </div>
+  <h1 class="text-2xl font-bold text-white tracking-tight">Set Weekly Goal</h1>
+  <p class="text-sm text-gray-500 mt-1 font-mono">Week of {{ week_start|date:"M d, Y" }}</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Main Form -->
+  <div class="lg:col-span-2">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <!-- Category -->
+        <div class="mb-5">
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            Study Domain <span class="text-red-400 ml-0.5">*</span>
+          </label>
+          {{ form.category }}
+          {% if form.category.errors %}
+            <p class="text-red-400 text-xs mt-1">{{ form.category.errors.0 }}</p>
+          {% endif %}
+          <p class="text-xs text-gray-600 mt-1">One goal per domain per week.</p>
+        </div>
+
+        <!-- Target Hours -->
+        <div class="mb-5">
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            Target Hours This Week <span class="text-red-400 ml-0.5">*</span>
+            <span class="font-mono text-indigo-400 ml-2" id="target-display">10h</span>
+          </label>
+
+          <input type="range"
+                 id="target-slider"
+                 min="1" max="40" step="0.5" value="10"
+                 class="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer accent-indigo-500 mb-3" />
+
+          {{ form.target_hours }}
+
+          {% if form.target_hours.errors %}
+            <p class="text-red-400 text-xs mt-1">{{ form.target_hours.errors.0 }}</p>
+          {% endif %}
+
+          <!-- Quick preset pills — hardcoded, no template loop -->
+          <div class="flex flex-wrap gap-2 mt-2">
+            <button type="button" onclick="setTarget(5)"
+                    class="target-pill text-xs font-mono px-3 py-1 rounded-full border border-gray-700 text-gray-400 hover:border-indigo-500 hover:text-indigo-400 transition-colors">5h</button>
+            <button type="button" onclick="setTarget(7)"
+                    class="target-pill text-xs font-mono px-3 py-1 rounded-full border border-gray-700 text-gray-400 hover:border-indigo-500 hover:text-indigo-400 transition-colors">7h</button>
+            <button type="button" onclick="setTarget(10)"
+                    class="target-pill text-xs font-mono px-3 py-1 rounded-full border border-gray-700 text-gray-400 hover:border-indigo-500 hover:text-indigo-400 transition-colors">10h</button>
+            <button type="button" onclick="setTarget(14)"
+                    class="target-pill text-xs font-mono px-3 py-1 rounded-full border border-gray-700 text-gray-400 hover:border-indigo-500 hover:text-indigo-400 transition-colors">14h</button>
+            <button type="button" onclick="setTarget(20)"
+                    class="target-pill text-xs font-mono px-3 py-1 rounded-full border border-gray-700 text-gray-400 hover:border-indigo-500 hover:text-indigo-400 transition-colors">20h</button>
+            <button type="button" onclick="setTarget(25)"
+                    class="target-pill text-xs font-mono px-3 py-1 rounded-full border border-gray-700 text-gray-400 hover:border-indigo-500 hover:text-indigo-400 transition-colors">25h</button>
+          </div>
+
+          <p class="text-xs text-gray-600 mt-2">
+            ≈ <span id="daily-avg">1.4</span>h/day across 7 days
+          </p>
+        </div>
+
+        <!-- Target Description -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            Goal Description <span class="text-red-400 ml-0.5">*</span>
+          </label>
+          {{ form.target_description }}
+          {% if form.target_description.errors %}
+            <p class="text-red-400 text-xs mt-1">{{ form.target_description.errors.0 }}</p>
+          {% endif %}
+          <p class="text-xs text-gray-600 mt-1">Be specific — what exactly will you study or build?</p>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex items-center gap-3">
+          <button type="submit"
+                  class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-2.5 rounded-lg transition-colors text-sm">
+            Save Goal →
+          </button>
+          <a href="{% url 'dashboard' %}" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+            Cancel
+          </a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="space-y-4">
+    <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Goals Set This Week</h2>
+
+    {% if existing_goals %}
+      {% for goal in existing_goals %}
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div class="flex items-start gap-3">
+          <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1"
+                style="background-color: {{ goal.category.color_code }}"></span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-white">{{ goal.category.get_name_display }}</p>
+            <p class="text-xs text-gray-500 mt-0.5 truncate">{{ goal.target_description }}</p>
+            <p class="text-xs font-mono text-indigo-400 mt-1">{{ goal.target_hours }}h targeted</p>
+          </div>
+          {% if goal.is_completed %}
+            <span class="text-xs text-emerald-400 flex-shrink-0">✓</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+        <p class="text-sm text-gray-500">No goals set yet this week.</p>
+      </div>
+    {% endif %}
+
+    <!-- Domain coverage — simple list, no broken queryset filter -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Domain Coverage</p>
+      {% if existing_goals %}
+        {% for goal in existing_goals %}
+        <div class="flex items-center gap-2 py-1">
+          <span class="text-emerald-400 text-xs">✓</span>
+          <span class="text-xs text-gray-400">{{ goal.category.get_name_display }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-xs text-gray-600">No domains covered yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- Tip -->
+    <div class="bg-indigo-950/50 border border-indigo-900/60 rounded-xl p-4">
+      <p class="text-xs font-semibold text-indigo-400 mb-1">💡 Planning Tip</p>
+      <p class="text-xs text-gray-400 leading-relaxed">
+        Set goals for all 4 domains every week — even 2–3h for lighter ones. Breadth during summer compounds by semester start.
+      </p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  const slider      = document.getElementById('target-slider');
+  const display     = document.getElementById('target-display');
+  const targetInput = document.getElementById('id_target_hours');
+  const avgDisplay  = document.getElementById('daily-avg');
+  const pills       = document.querySelectorAll('.target-pill');
+
+  function setTarget(val) {
+    slider.value       = val;
+    targetInput.value  = val;
+    display.textContent  = val + 'h';
+    avgDisplay.textContent = (val / 7).toFixed(1);
+    pills.forEach(p => {
+      const match = parseInt(p.textContent) === val;
+      p.classList.toggle('border-indigo-500', match);
+      p.classList.toggle('text-indigo-400', match);
+      p.classList.toggle('border-gray-700', !match);
+      p.classList.toggle('text-gray-400', !match);
+    });
+  }
+
+  slider.addEventListener('input', () => setTarget(parseFloat(slider.value)));
+  setTarget(10);
+</script>
+{% endblock %}

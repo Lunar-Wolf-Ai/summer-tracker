@@ -1,0 +1,14 @@
+# Secret Environment Variables
+.env
+
+# Virtual Environments
+venv/
+env/
+
+# Python Cache (unnecessary files that Python generates)
+__pycache__/
+*.pyc
+*.pyo
+
+# Local SQLite Database (if you ever use it for testing)
+db.sqlite3

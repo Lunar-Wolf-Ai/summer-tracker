@@ -1,0 +1,2 @@
+body { margin: 0; overflow: hidden; background: #000; }
+#webcam { position: absolute; transform: scaleX(-1); width: 200px; height: auto; bottom: 10px; left: 10px; border: 2px solid #fff; z-index: 10; opacity: 0.5; }
