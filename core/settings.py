@@ -14,6 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-insecure-key-change-in-production')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['*']  # Restrict this in production
+CSRF_TRUSTED_ORIGINS = ['https://summer-tracker-production.up.railway.app']
 
 # --- Application Definition ---
 INSTALLED_APPS = [
