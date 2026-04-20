@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Login — SummerTrack{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center">
+  <div class="w-full max-w-md">
+
+    <div class="text-center mb-8">
+      <span class="text-5xl">⚡</span>
+      <h1 class="text-2xl font-bold text-white mt-3">Welcome back</h1>
+      <p class="text-gray-500 text-sm mt-1">Log in to your SummerTrack dashboard</p>
+    </div>
+
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8">
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="bg-red-900/40 border border-red-800 text-red-300 text-sm px-4 py-3 rounded-lg mb-5">
+          Invalid username or password. Please try again.
+        </div>
+        {% endif %}
+
+        <div class="mb-5">
+          <label class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+          <input type="text" name="username" autofocus autocomplete="username"
+                 class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2.5
+                        text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                 placeholder="Your username" />
+        </div>
+
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+          <input type="password" name="password" autocomplete="current-password"
+                 class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2.5
+                        text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                 placeholder="••••••••" />
+        </div>
+
+        <button type="submit"
+                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold
+                       py-2.5 rounded-lg transition-colors text-sm">
+          Log In →
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-xs text-gray-600 mt-4">
+      Personal tracker — access restricted.
+    </p>
+  </div>
+</div>
+{% endblock %}

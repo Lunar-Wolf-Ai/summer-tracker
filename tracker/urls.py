@@ -13,4 +13,7 @@ urlpatterns = [
 
     # Daily logging
     path('log/', views.log_progress, name='log_progress'),
+
+    #Weekly history
+    path('history/', views.weekly_history, name='weekly_history'),
 ]

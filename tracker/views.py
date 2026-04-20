@@ -1,5 +1,6 @@
 # tracker/views.py
 
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 import datetime
 import json
@@ -21,7 +22,7 @@ def get_current_week_start():
 # ─────────────────────────────────────────────
 #  DASHBOARD
 # ─────────────────────────────────────────────
-
+@login_required
 def dashboard(request):
     """
     Main dashboard view.
@@ -100,7 +101,7 @@ def dashboard(request):
 # ─────────────────────────────────────────────
 #  WEEKLY GOAL SETUP
 # ─────────────────────────────────────────────
-
+@login_required
 def set_goal(request):
     if request.method == 'POST':
         form = WeeklyGoalForm(request.POST)
@@ -141,7 +142,7 @@ def set_goal(request):
 # ─────────────────────────────────────────────
 #  DAILY LOG
 # ─────────────────────────────────────────────
-
+@login_required
 def log_progress(request):
     """
     End-of-day log submission view.
@@ -179,7 +180,7 @@ def log_progress(request):
 # ─────────────────────────────────────────────
 #  GOAL TOGGLE — AJAX-FRIENDLY QUICK ACTION
 # ─────────────────────────────────────────────
-
+@login_required
 def toggle_goal_complete(request, goal_id):
     """
     POST-only view to mark a weekly goal as completed/incomplete.
@@ -195,3 +196,30 @@ def toggle_goal_complete(request, goal_id):
             f"{goal.category.get_name_display()} goal marked as {status}."
         )
     return redirect('dashboard')
+
+@login_required
+def weekly_history(request):
+    from itertools import groupby
+
+    all_goals = WeeklyGoal.objects.all().select_related(
+        'category'
+    ).prefetch_related('daily_logs').order_by('-week_start_date')
+
+    weeks = []
+    for week_start, goals_iter in groupby(all_goals, key=lambda g: g.week_start_date):
+        goals = list(goals_iter)
+        week_end = week_start + datetime.timedelta(days=6)
+        total_logged = sum(float(g.hours_logged) for g in goals)
+        total_target = sum(float(g.target_hours) for g in goals)
+        overall_pct = min(int((total_logged / total_target) * 100), 100) if total_target else 0
+        weeks.append({
+            'week_start': week_start,
+            'week_end': week_end,
+            'goals': goals,
+            'total_logged': round(total_logged, 1),
+            'total_target': round(total_target, 1),
+            'overall_pct': overall_pct,
+            'is_current': week_start == get_current_week_start(),
+        })
+
+    return render(request, 'tracker/weekly_history.html', {'weeks': weeks})

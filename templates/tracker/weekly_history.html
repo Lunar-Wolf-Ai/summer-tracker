@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Weekly History — SummerTrack{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-white tracking-tight">Summer Progress History</h1>
+  <p class="text-sm text-gray-500 mt-1">Every week of your 2-month sprint — all data preserved.</p>
+</div>
+
+{% if not weeks %}
+<div class="text-center py-20 bg-gray-900 rounded-2xl border border-gray-800">
+  <p class="text-4xl mb-3">📭</p>
+  <p class="text-gray-400">No history yet. Start logging this week!</p>
+</div>
+
+{% else %}
+<div class="space-y-4">
+  {% for week in weeks %}
+  <div class="bg-gray-900 border
+              {% if week.is_current %}border-indigo-700{% else %}border-gray-800{% endif %}
+              rounded-2xl overflow-hidden">
+
+    <!-- Week header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        {% if week.is_current %}
+        <span class="text-xs bg-indigo-900/60 text-indigo-300 border border-indigo-800 px-2 py-0.5 rounded-full">
+          Current Week
+        </span>
+        {% endif %}
+        <h2 class="font-semibold text-white text-sm font-mono">
+          {{ week.week_start|date:"M d" }} → {{ week.week_end|date:"M d, Y" }}
+        </h2>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-mono font-bold
+                     {% if week.overall_pct >= 75 %}text-emerald-400
+                     {% elif week.overall_pct >= 40 %}text-amber-400
+                     {% else %}text-red-400{% endif %}">
+          {{ week.overall_pct }}%
+        </span>
+        <span class="text-xs text-gray-500 font-mono">
+          {{ week.total_logged }}h / {{ week.total_target }}h
+        </span>
+      </div>
+    </div>
+
+    <!-- Master progress bar -->
+    <div class="px-5 pt-3">
+      <div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+        <div class="h-full rounded-full progress-bar
+                    {% if week.overall_pct >= 75 %}bg-emerald-500
+                    {% elif week.overall_pct >= 40 %}bg-amber-500
+                    {% else %}bg-indigo-500{% endif %}"
+             style="width: {{ week.overall_pct }}%">
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-category breakdown -->
+    <div class="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {% for goal in week.goals %}
+      <div class="bg-gray-800/50 rounded-xl p-3">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full flex-shrink-0"
+                style="background-color: {{ goal.category.color_code }}"></span>
+          <span class="text-xs font-semibold text-gray-300">
+            {{ goal.category.get_name_display }}
+          </span>
+          {% if goal.is_completed %}
+          <span class="ml-auto text-emerald-400 text-xs">✓</span>
+          {% endif %}
+        </div>
+        <div class="h-1 bg-gray-700 rounded-full overflow-hidden mb-2">
+          <div class="h-full rounded-full"
+               style="width: {{ goal.progress_percentage }}%;
+                      background-color: {{ goal.category.color_code }}">
+          </div>
+        </div>
+        <div class="flex justify-between text-xs font-mono text-gray-500">
+          <span>{{ goal.hours_logged }}h logged</span>
+          <span>{{ goal.target_hours }}h</span>
+        </div>
+        <p class="text-xs text-gray-600 mt-1.5 truncate">{{ goal.target_description }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
