@@ -64,7 +64,7 @@ def dashboard(request):
         })
 
         # Chart.js data arrays
-        chart_labels.append(goal.category.get_name_display())
+        chart_labels.append(goal.category.name)
         chart_hours_logged.append(logged)
         chart_hours_target.append(target)
         chart_colors.append(goal.category.color_code)
