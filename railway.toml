@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "python manage.py migrate && python manage.py seed && gunicorn core.wsgi:application"
+healthcheckPath = "/"
+restartPolicyType = "on_failure"
